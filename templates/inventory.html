@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block page_title %}Inventory Management{% endblock %}
+
+{% block content %}
+<div class="inventory-container">
+    <div class="card add-item-section">
+        <h3 class="card-title">Add New Item</h3>
+        <form id="add-item-form" class="unified-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="item-name" required class="form-input" placeholder="E.g. Widget A">
+                </div>
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" id="item-price" step="0.01" min="0" required class="form-input" placeholder="0.00">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Initial Quantity</label>
+                    <input type="number" id="item-quantity" min="0" required class="form-input" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Expiry Date (Optional)</label>
+                    <input type="date" id="item-expiry" class="form-input">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Add to Inventory</button>
+        </form>
+    </div>
+
+    <div class="card inventory-list-section">
+        <h3 class="card-title">Current Stock</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Name</th>
+                        <th>Price (₹)</th>
+                        <th>Stock Qty</th>
+                        <th>Expiry Date</th>
+                        <th>Added On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-tbody">
+                    <!-- Data injected via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content glass-card">
+        <span class="close-modal" onclick="closeEditModal()">&times;</span>
+        <h3 class="card-title glow-text">Edit Stock Item</h3>
+        <form id="edit-item-form" class="unified-form">
+            <input type="hidden" id="edit-item-id">
+            <div class="form-group">
+                <label>Item Name</label>
+                <input type="text" id="edit-item-name" required class="form-input">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" id="edit-item-price" step="0.01" min="0" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Stock Qty</label>
+                    <input type="number" id="edit-item-quantity" min="0" required class="form-input">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Expiry Date</label>
+                <input type="date" id="edit-item-expiry" class="form-input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block glow-btn">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

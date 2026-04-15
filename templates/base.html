@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metro Supply - Inventory Management</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Custom JS -->
+    <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</head>
+<body class="{% if not current_user.is_authenticated %}auth-page{% endif %}">
+
+    {% if current_user.is_authenticated %}
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="brand"><span class="brand-icon">📦</span> Metro Supply</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('index') }}" class="{% if request.path == '/' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="{{ url_for('inventory') }}" class="{% if request.path == '/inventory' %}active{% endif %}">Inventory</a></li>
+            <li><a href="{{ url_for('sell') }}" class="{% if request.path == '/sell' %}active{% endif %}">Billing & Sell</a></li>
+        </ul>
+        <div class="user-info">
+            <div class="theme-switch-wrapper">
+                 <button id="theme-btn" class="theme-toggle-btn" title="Toggle Theme">🌓 Theme</button>
+            </div>
+            <div class="user-details">
+                <span class="username">{{ current_user.username }}</span>
+                <span class="role">{{ current_user.role | title }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+    <main class="content-area">
+        <header class="top-nav">
+            <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
+            <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            </div>
+        </header>
+
+        <div class="content-container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    {% else %}
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+
+</body>
+</html>

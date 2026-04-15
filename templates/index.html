@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block page_title %}Dashboard Analytics{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid top-stats">
+    <div class="stat-card glass-card bounce-hover">
+        <h3 class="glow-text">Top 3 Selling Products</h3>
+        <p class="stat-value" id="top-product">Loading...</p>
+    </div>
+    <div class="stat-card stat-alert glass-card bounce-hover flex-col">
+        <h3 class="glow-text text-warning">Active Alerts</h3>
+        <div id="alerts-container" class="alerts-list">
+            <!-- Alerts injected via JS -->
+            <p>Loading alerts...</p>
+        </div>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <!-- Chart 1: Revenue -->
+    <div class="chart-wrapper glass-card bounce-hover">
+        <div class="chart-container">
+            <h3 class="card-title glow-text">Daily Revenue</h3>
+            <canvas id="revenueChart"></canvas>
+        </div>
+        <div class="chart-description">
+            <p>💸 <strong>Trend Analysis:</strong> This line graph tracks your holistic revenue over the past 14 days. Watch for peaks during weekends or promotional periods, and use it to predict future highs.</p>
+        </div>
+    </div>
+
+    <!-- Chart 2: Products Sold -->
+    <div class="chart-wrapper glass-card bounce-hover">
+        <div class="chart-container">
+            <h3 class="card-title glow-text">Top Products By Volume</h3>
+            <canvas id="productsChart"></canvas>
+        </div>
+        <div class="chart-description">
+            <p>📦 <strong>Volume Analysis:</strong> A breakdown of your highest-moving inventory. Items listed here represent your core sales drivers. Ensure these are never out of stock!</p>
+        </div>
+    </div>
+
+    <!-- Chart 3: Sales Velocity -->
+    <div class="chart-wrapper glass-card bounce-hover" style="grid-column: 1 / -1; max-width: 800px; margin: 0 auto;">
+        <div class="chart-container" style="height: 400px;">
+            <h3 class="card-title glow-text">Sales Velocity (Speed of Stock Clearance)</h3>
+            <canvas id="velocityChart"></canvas>
+        </div>
+        <div class="chart-description" style="text-align: center;">
+            <p>🚀 <strong>Velocity Insight:</strong> This radar chart reveals how fast individual items clear from your inventory on a daily basis (Qty Sold per Day Active). The larger the spike, the faster-moving the product! Focus marketing aggressively on products with high velocity.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

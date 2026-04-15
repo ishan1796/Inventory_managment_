@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - Metro Supply</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-gradient: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+            --text-dark: #1A1A2E;
+            --text-muted: #64748B;
+            --bg-page: #0F172A;
+            --bg-invoice: #FFFFFF;
+            --border-light: #E2E8F0;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-page);
+            margin: 0;
+            padding: 3rem;
+            display: flex;
+            justify-content: center;
+            color: var(--text-dark);
+        }
+        .invoice-wrapper {
+            background: var(--bg-invoice);
+            width: 100%;
+            max-width: 850px;
+            padding: 0;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+        }
+        .invoice-header {
+            background: var(--brand-gradient);
+            padding: 3rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .brand-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+        .brand-details p {
+            margin: 4px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .invoice-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            margin: 0;
+            opacity: 0.2;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+        
+        .invoice-body {
+            padding: 3rem;
+        }
+
+        .meta-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            background: #F8FAFC;
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        .meta-group strong {
+            display: block;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .meta-group span {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 3rem;
+        }
+        .invoice-table th, .invoice-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-light);
+            text-align: left;
+        }
+        .invoice-table th {
+            color: var(--text-muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--text-dark);
+        }
+        .invoice-table td.num, .invoice-table th.num {
+            text-align: right;
+        }
+        .invoice-table tbody tr {
+            transition: all 0.2s;
+        }
+        .invoice-table tbody tr:hover {
+            background: #F8FAFC;
+        }
+
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .totals-box {
+            width: 350px;
+            background: #F8FAFC;
+            padding: 24px;
+            border-radius: 16px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+            color: var(--text-muted);
+        }
+        .total-row span:last-child {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .total-row.grand-total {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px dashed #CBD5E1;
+            font-size: 24px;
+            color: var(--text-dark);
+            font-weight: 800;
+        }
+        .total-row.grand-total span:last-child {
+            color: #10B981;
+        }
+
+        .thank-you {
+            text-align: center;
+            margin-top: 4rem;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .thank-you p { margin: 5px 0; }
+        .thank-you span {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 18px;
+        }
+
+        .action-bar {
+            text-align: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .glow-btn {
+            background: var(--brand-gradient);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 10px 20px -5px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: inline-block;
+        }
+        .glow-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 25px -5px rgba(255, 107, 107, 0.6);
+        }
+
+        @media print {
+            body { background: white; padding: 0; display: block; }
+            .invoice-wrapper { box-shadow: none; max-width: 100%; border-radius: 0; }
+            .action-bar { display: none; }
+            .invoice-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .meta-section, .totals-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+    <div style="width: 100%; max-width: 850px; margin: 0 auto;">
+        <div class="action-bar">
+            <button class="glow-btn" onclick="window.print()">🔥 Print Invoice</button>
+            <a href="/" class="glow-btn" style="background:#334155; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.4); margin-left:15px;">Dashboard</a>
+        </div>
+
+        <div class="invoice-wrapper">
+            <div class="invoice-header">
+                <div>
+                    <h1 class="brand-name">Metro Supply</h1>
+                    <div class="brand-details">
+                        <p>123 Industrial Estate, Guindy, Chennai</p>
+                        <p>hello@metrosupply.in | +91 98765 43210</p>
+                        <p>GSTIN: 33ABCDE1234F1Z5</p>
+                    </div>
+                </div>
+                <h2 class="invoice-title">INVOICE</h2>
+            </div>
+            
+            <div class="invoice-body">
+                <div class="meta-section">
+                    <div class="meta-group">
+                        <strong>Billed To</strong>
+                        <span>Cash / Walk-in Customer</span>
+                    </div>
+                    <div class="meta-group" style="text-align: right;">
+                        <strong>Invoice Number</strong>
+                        <span id="inv-id">Loading...</span>
+                    </div>
+                    <div class="meta-group" style="text-align: right;">
+                        <strong>Date</strong>
+                        <span id="inv-date">Loading...</span>
+                    </div>
+                </div>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Item Description</th>
+                            <th class="num">Qty</th>
+                            <th class="num">Unit Price (₹)</th>
+                            <th class="num">Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inv-items">
+                        <!-- Items injected here -->
+                    </tbody>
+                </table>
+
+                <div class="totals-section">
+                    <div class="totals-box">
+                        <div class="total-row">
+                            <span>Subtotal</span>
+                            <span id="inv-subtotal">₹0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Discount</span>
+                            <span id="inv-discount">-₹0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span>GST (18%)</span>
+                            <span id="inv-gst">₹0.00</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span>TOTAL</span>
+                            <span id="inv-total">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="thank-you">
+                    <span>Thank you for your business!</span>
+                    <p>Have an amazing day further.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const billDataStr = localStorage.getItem('last_bill');
+            if(billDataStr) {
+                try {
+                    const data = JSON.parse(billDataStr);
+                    document.getElementById('inv-id').innerText = data.bill_id;
+                    document.getElementById('inv-date').innerText = data.date;
+                    
+                    const tbody = document.getElementById('inv-items');
+                    tbody.innerHTML = '';
+                    
+                    data.items.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="font-weight:600;">${item.name}</td>
+                            <td class="num">${item.quantity}</td>
+                            <td class="num">${item.price.toFixed(2)}</td>
+                            <td class="num">${item.total.toFixed(2)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    
+                    document.getElementById('inv-subtotal').innerText = `₹${data.subtotal.toFixed(2)}`;
+                    document.getElementById('inv-discount').innerText = `-₹${data.discount.toFixed(2)}`;
+                    document.getElementById('inv-gst').innerText = `₹${data.gst.toFixed(2)}`;
+                    document.getElementById('inv-total').innerText = `₹${data.total.toFixed(2)}`;
+                } catch (e) {
+                    console.error("Parse failed");
+                }
+            }
+        });
+    </script>
+</body>
+</html>
