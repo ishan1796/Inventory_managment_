@@ -10,7 +10,13 @@ from models import db, User, Item, Bill, Sale
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-123'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///inventory.db'
+
+# Use environment variable for database URL on production (e.g. PostgreSQL on Vercel)
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'sqlite:///inventory.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -25,7 +31,10 @@ def load_user(user_id):
 
 # Initialize database
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Database initialization skipped/failed: {e}")
 
 # --- AUTHENTICATION ROUTES ---
 
@@ -320,9 +329,9 @@ def dashboard_data():
     # Revenue grouped by date
     # Format date as YYYY-MM-DD for grouping
     bills = db.session.query(
-        func.date(Bill.date).label('b_date'),
+        db.cast(Bill.date, db.Date).label('b_date'),
         func.sum(Bill.total_amount).label('daily_total')
-    ).group_by(func.date(Bill.date)).order_by(func.date(Bill.date).desc()).limit(14).all()
+    ).group_by(db.cast(Bill.date, db.Date)).order_by(db.cast(Bill.date, db.Date).desc()).limit(14).all()
     
     daily_revenue = [{'date': str(row[0]), 'total': float(row[1])} for row in reversed(bills)]
     
