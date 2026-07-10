@@ -4,50 +4,52 @@
 
 {% block content %}
 <div class="inventory-container">
-    <div class="card add-item-section">
-        <h3 class="card-title">Add New Item</h3>
-        <form id="add-item-form" class="unified-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Item Name</label>
-                    <input type="text" id="item-name" required class="form-input" placeholder="E.g. Widget A">
+    <div class="inventory-sidebar" style="display: flex; flex-direction: column; gap: 30px;">
+        <div class="card add-item-section">
+            <h3 class="card-title">Add New Item</h3>
+            <form id="add-item-form" class="unified-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="item-name" required class="form-input" placeholder="E.g. Widget A">
+                    </div>
+                    <div class="form-group">
+                        <label>Price (₹)</label>
+                        <input type="number" id="item-price" step="0.01" min="0" required class="form-input" placeholder="0.00">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Price (₹)</label>
-                    <input type="number" id="item-price" step="0.01" min="0" required class="form-input" placeholder="0.00">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Initial Quantity</label>
+                        <input type="number" id="item-quantity" min="0" required class="form-input" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date (Optional)</label>
+                        <input type="date" id="item-expiry" class="form-input">
+                    </div>
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Initial Quantity</label>
-                    <input type="number" id="item-quantity" min="0" required class="form-input" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label>Expiry Date (Optional)</label>
-                    <input type="date" id="item-expiry" class="form-input">
-                </div>
-            </div>
-            <button type="submit" class="btn btn-primary">Add to Inventory</button>
-        </form>
-    </div>
+                <button type="submit" class="btn btn-primary">Add to Inventory</button>
+            </form>
+        </div>
 
-    <div class="card bulk-upload-section">
-        <h3 class="card-title">Bulk Import (Excel / CSV)</h3>
-        <p class="section-desc" style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 15px;">
-            Quickly upload multiple medicines or items using a spreadsheet. Duplicate names will automatically add to existing quantities.
-        </p>
-        <form id="bulk-upload-form" class="unified-form" enctype="multipart/form-data">
-            <div class="form-group">
-                <label>Choose File (.xlsx, .xls, .csv)</label>
-                <input type="file" id="bulk-file-input" accept=".csv, .xlsx, .xls" required class="form-input" style="padding: 10px;">
+        <div class="card bulk-upload-section">
+            <h3 class="card-title">Bulk Import (Excel / CSV)</h3>
+            <p class="section-desc" style="opacity: 0.8; font-size: 0.9rem; margin-bottom: 15px;">
+                Quickly upload multiple medicines or items using a spreadsheet. Duplicate names will automatically add to existing quantities.
+            </p>
+            <form id="bulk-upload-form" class="unified-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Choose File (.xlsx, .xls, .csv)</label>
+                    <input type="file" id="bulk-file-input" accept=".csv, .xlsx, .xls" required class="form-input" style="padding: 10px;">
+                </div>
+                <div class="btn-group" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn-primary">Import Spreadsheet</button>
+                    <a href="/api/download_template" class="btn btn-secondary" style="text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; height: 38px;">Download Template</a>
+                </div>
+            </form>
+            <div id="bulk-upload-result" style="margin-top: 15px; display: none; padding: 12px; border-radius: 8px; font-size: 0.95rem;">
+                <!-- Upload status inserted via JS -->
             </div>
-            <div class="btn-group" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                <button type="submit" class="btn btn-primary">Import Spreadsheet</button>
-                <a href="/api/download_template" class="btn btn-secondary" style="text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; height: 38px;">Download Template</a>
-            </div>
-        </form>
-        <div id="bulk-upload-result" style="margin-top: 15px; display: none; padding: 12px; border-radius: 8px; font-size: 0.95rem;">
-            <!-- Upload status inserted via JS -->
         </div>
     </div>
 
