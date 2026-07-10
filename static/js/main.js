@@ -64,6 +64,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Request failed');
             }
         });
+
+        // Bulk Upload Form Submit
+        const bulkUploadForm = document.getElementById('bulk-upload-form');
+        if (bulkUploadForm) {
+            // Add style for keyframes animation if not present
+            if (!document.getElementById('spinner-keyframes')) {
+                const style = document.createElement('style');
+                style.id = 'spinner-keyframes';
+                style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                document.head.appendChild(style);
+            }
+
+            bulkUploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fileInput = document.getElementById('bulk-file-input');
+                const resultDiv = document.getElementById('bulk-upload-result');
+                
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Please select a file to upload.');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = 'rgba(255, 255, 255, 0.1)';
+                resultDiv.style.color = 'var(--text-color)';
+                resultDiv.innerHTML = '<div style="margin-right:10px; display:inline-block; width:12px; height:12px; border:2px solid var(--primary-color); border-radius:50%; border-top-color:transparent; animation:spin 1s linear infinite; vertical-align:middle;"></div> Processing spreadsheet...';
+                
+                try {
+                    const res = await fetch('/api/upload_inventory', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    
+                    if (res.ok) {
+                        let html = `<p style="font-weight:bold; color:#4caf50; margin-bottom:5px;">✓ Import Complete!</p>`;
+                        html += `<p style="margin:2px 0;">Added: <strong>${data.added}</strong> new items</p>`;
+                        html += `<p style="margin:2px 0;">Updated: <strong>${data.updated}</strong> existing items</p>`;
+                        
+                        if (data.errors && data.errors.length > 0) {
+                            html += `<div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">`;
+                            html += `<p style="font-weight:bold; color:#ff9800; margin-bottom:5px;">Warnings (${data.errors.length} rows skipped):</p>`;
+                            html += `<ul style="max-height:100px; overflow-y:auto; padding-left:15px; margin:0; font-size:0.85rem; color:#ffb74d;">`;
+                            data.errors.forEach(err => {
+                                html += `<li>Row ${err.row}: ${err.error}</li>`;
+                            });
+                            html += `</ul></div>`;
+                        }
+                        
+                        resultDiv.style.background = 'rgba(76, 175, 80, 0.1)';
+                        resultDiv.style.border = '1px solid rgba(76, 175, 80, 0.3)';
+                        resultDiv.innerHTML = html;
+                        bulkUploadForm.reset();
+                        fetchInventory();
+                    } else {
+                        resultDiv.style.background = 'rgba(244, 67, 54, 0.1)';
+                        resultDiv.style.border = '1px solid rgba(244, 67, 54, 0.3)';
+                        resultDiv.innerHTML = `<p style="color:#f44336; font-weight:bold; margin:0;">Error: ${data.error}</p>`;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    resultDiv.style.background = 'rgba(244, 67, 54, 0.1)';
+                    resultDiv.style.border = '1px solid rgba(244, 67, 54, 0.3)';
+                    resultDiv.innerHTML = `<p style="color:#f44336; font-weight:bold; margin:0;">Upload failed. Server connection error.</p>`;
+                }
+            });
+        }
         
         // Edit Item Form Submit
         document.getElementById('edit-item-form').addEventListener('submit', async (e) => {

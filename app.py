@@ -1,8 +1,10 @@
 import os
 import uuid
 import json
+import csv
+import io
 from datetime import datetime, timedelta, date
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from sqlalchemy import func
@@ -354,6 +356,166 @@ def dashboard_data():
         'daily_revenue': daily_revenue,
         'velocity_data': velocity_data,
         'top_product': top_product
+    })
+
+@app.route('/api/download_template')
+@login_required
+def download_template():
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Medicine Name', 'Price (INR)', 'Stock Quantity', 'Expiry Date (YYYY-MM-DD)'])
+    writer.writerow(['Paracetamol 650mg', '15.50', '100', '2027-12-31'])
+    writer.writerow(['Amoxicillin 500mg', '85.00', '50', '2026-10-15'])
+    writer.writerow(['Cetirizine 10mg', '5.20', '200', ''])
+    
+    response = Response(output.getvalue(), mimetype='text/csv')
+    response.headers['Content-Disposition'] = 'attachment; filename=inventory_template.csv'
+    return response
+
+@app.route('/api/upload_inventory', methods=['POST'])
+@login_required
+def upload_inventory():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+        
+    file = request.files['file']
+    if not file or file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+        
+    filename = file.filename.lower()
+    rows = []
+    
+    try:
+        if filename.endswith('.csv'):
+            file_content = file.read().decode('utf-8-sig')
+            csv_data = csv.DictReader(io.StringIO(file_content))
+            for r in csv_data:
+                rows.append(r)
+        elif filename.endswith(('.xlsx', '.xls')):
+            import openpyxl
+            file_content = file.read()
+            wb = openpyxl.load_workbook(io.BytesIO(file_content), data_only=True)
+            sheet = wb.active
+            headers = [cell.value for cell in sheet[1]]
+            if not any(headers):
+                return jsonify({'error': 'Empty Excel sheet'}), 400
+                
+            for row_idx in range(2, sheet.max_row + 1):
+                row_values = [sheet.cell(row=row_idx, column=col_idx).value for col_idx in range(1, len(headers) + 1)]
+                if not any(v is not None for v in row_values):
+                    continue
+                row_dict = {headers[i]: row_values[i] for i in range(len(headers)) if headers[i] is not None}
+                rows.append(row_dict)
+        else:
+            return jsonify({'error': 'Unsupported file format. Please upload CSV or Excel (.xlsx/.xls)'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Failed to read file: {str(e)}'}), 400
+
+    if not rows:
+        return jsonify({'error': 'No data rows found in file'}), 400
+
+    added_count = 0
+    updated_count = 0
+    errors = []
+
+    def get_field(row_dict, options):
+        for opt in options:
+            for k in row_dict.keys():
+                if k and k.strip().lower() == opt.lower():
+                    return row_dict[k]
+        return None
+
+    for idx, row in enumerate(rows, start=2):
+        name_val = get_field(row, ['medicine name', 'item name', 'name', 'product name'])
+        price_val = get_field(row, ['price (inr)', 'price', 'list price', 'mrp'])
+        qty_val = get_field(row, ['stock quantity', 'quantity', 'stock qty', 'stock', 'qty'])
+        expiry_val = get_field(row, ['expiry date', 'expiry date (yyyy-mm-dd)', 'expiry'])
+
+        if not name_val or str(name_val).strip() == '':
+            errors.append({'row': idx, 'error': 'Missing medicine/item name'})
+            continue
+            
+        name_val = str(name_val).strip()
+
+        if price_val is None or str(price_val).strip() == '':
+            errors.append({'row': idx, 'error': f"Missing price for '{name_val}'"})
+            continue
+        try:
+            price = float(str(price_val).replace('₹', '').replace(',', '').strip())
+            if price < 0:
+                errors.append({'row': idx, 'error': f"Price cannot be negative for '{name_val}'"})
+                continue
+        except ValueError:
+            errors.append({'row': idx, 'error': f"Invalid price format '{price_val}' for '{name_val}'"})
+            continue
+
+        if qty_val is None or str(qty_val).strip() == '':
+            errors.append({'row': idx, 'error': f"Missing quantity for '{name_val}'"})
+            continue
+        try:
+            quantity = int(float(str(qty_val).replace(',', '').strip()))
+            if quantity < 0:
+                errors.append({'row': idx, 'error': f"Quantity cannot be negative for '{name_val}'"})
+                continue
+        except ValueError:
+            errors.append({'row': idx, 'error': f"Invalid quantity format '{qty_val}' for '{name_val}'"})
+            continue
+
+        expiry_date = None
+        if expiry_val and str(expiry_val).strip() != '':
+            expiry_str = str(expiry_val).strip()
+            parsed = False
+            for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y', '%Y/%m/%d', '%d/%m/%Y'):
+                try:
+                    if ' ' in expiry_str:
+                        expiry_str = expiry_str.split(' ')[0]
+                    expiry_date = datetime.strptime(expiry_str, fmt).date()
+                    parsed = True
+                    break
+                except ValueError:
+                    continue
+            
+            if not parsed and isinstance(expiry_val, (datetime, date)):
+                expiry_date = expiry_val if isinstance(expiry_val, date) else expiry_val.date()
+                parsed = True
+                
+            if not parsed:
+                errors.append({'row': idx, 'error': f"Invalid expiry date format '{expiry_val}' for '{name_val}'. Use YYYY-MM-DD."})
+                continue
+
+        try:
+            existing_item = Item.query.filter(func.lower(Item.name) == func.lower(name_val)).first()
+            if existing_item:
+                existing_item.price = price
+                existing_item.quantity += quantity
+                if expiry_date:
+                    existing_item.expiry_date = expiry_date
+                updated_count += 1
+            else:
+                item_id = f"ITM-{str(uuid.uuid4())[:8].upper()}"
+                new_item = Item(
+                    item_id=item_id,
+                    name=name_val,
+                    price=price,
+                    quantity=quantity,
+                    expiry_date=expiry_date
+                )
+                db.session.add(new_item)
+                added_count += 1
+        except Exception as db_err:
+            errors.append({'row': idx, 'error': f"Database save error: {str(db_err)}"})
+
+    try:
+        db.session.commit()
+    except Exception as commit_err:
+        db.session.rollback()
+        return jsonify({'error': f"Failed to save changes: {str(commit_err)}"}), 500
+
+    return jsonify({
+        'success': True,
+        'added': added_count,
+        'updated': updated_count,
+        'errors': errors
     })
 
 if __name__ == '__main__':
